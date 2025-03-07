@@ -51,33 +51,42 @@
 
     // Once video data is available, scan continuously for a QR code.
     video.addEventListener("loadeddata", () => {
-      const context = canvas.getContext("2d");
+	  const context = canvas.getContext("2d");
 
-      const scan = () => {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          // Set canvas dimensions to match video dimensions
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          let imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          // Use jsQR to scan the image data for a QR code
-          let code = jsQR(imageData.data, imageData.width, imageData.height);
-          if (code) {
-            qrData = code.data;
-            console.log("QR code detected:", qrData);
-            // Stop the video stream after detection
-            video.srcObject.getTracks().forEach(track => track.stop());
-            // Display the output and generate the QR code
-            output.hidden = false;
-            generateQRCode(qrData);
-            return;
-          }
-        }
-        requestAnimationFrame(scan);
-      };
+	  const scan = () => {
+	    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+	      // Set canvas dimensions to match video dimensions
+	      canvas.width = video.videoWidth;
+	      canvas.height = video.videoHeight;
+	      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      scan();
-    });
+	      // For debugging: display the canvas
+	      canvas.style.display = "block";  // Temporarily show the canvas
+
+	      // Log dimensions
+	      console.log("Video dimensions:", video.videoWidth, video.videoHeight);
+
+	      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+	      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+	      if (code) {
+		qrData = code.data;
+		console.log("QR code detected:", qrData);
+		// Stop the video stream
+		video.srcObject.getTracks().forEach(track => track.stop());
+		output.hidden = false;
+		generateQRCode(qrData);
+		return;
+	      } else {
+		console.log("No QR code detected in this frame.");
+	      }
+	    }
+	    requestAnimationFrame(scan);
+	  };
+
+	  scan();
+	});
+
 
     // Function to generate a QR code using the detected data
     function generateQRCode(data) {
