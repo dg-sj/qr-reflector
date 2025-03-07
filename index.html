@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>QR Code Reflector</title>
-  <!-- Import qr-scanner and QRCode.js with defer -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.min.js" defer></script>
+  <!-- QRCode.js is loaded as a regular script -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <style>
     body {
@@ -35,37 +34,37 @@
     <div id="qrcode"></div>
   </div>
   
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // Set the worker path for qr-scanner
-      QrScanner.WORKER_PATH = 'https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner-worker.min.js';
+  <!-- Import qr-scanner as an ES module and run the app code -->
+  <script type="module">
+    // Import the qr-scanner module from the CDN
+    import QrScanner from "https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.min.js";
+    
+    // Set the worker path required by qr-scanner
+    QrScanner.WORKER_PATH = 'https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner-worker.min.js';
+    
+    const video = document.getElementById('video');
+    const reflectedDiv = document.getElementById('reflected');
+    const qrcodeDiv = document.getElementById('qrcode');
+    
+    // Initialize qr-scanner with the video element and a callback function
+    const qrScanner = new QrScanner(video, result => {
+      console.log('QR code detected:', result);
+      qrScanner.stop();               // Stop scanning when a QR code is detected
+      video.style.display = 'none';   // Hide the video stream
+      reflectedDiv.style.display = 'block';  // Show the reflected QR code area
       
-      const video = document.getElementById('video');
-      const reflectedDiv = document.getElementById('reflected');
-      const qrcodeDiv = document.getElementById('qrcode');
-      
-      // Initialize the QR scanner with the video element and callback
-      const qrScanner = new QrScanner(video, result => {
-        console.log('QR code detected:', result);
-        // Stop scanning once a QR code is detected
-        qrScanner.stop();
-        // Hide the video element
-        video.style.display = 'none';
-        // Show the reflected QR code section
-        reflectedDiv.style.display = 'block';
-        // Clear any previous QR code and generate a new one using the scanned data
-        qrcodeDiv.innerHTML = '';
-        new QRCode(qrcodeDiv, {
-          text: result,
-          width: 256,
-          height: 256,
-          correctLevel: QRCode.CorrectLevel.H
-        });
+      // Clear any existing QR code and generate a new one using the scanned data
+      qrcodeDiv.innerHTML = '';
+      new QRCode(qrcodeDiv, {
+        text: result,
+        width: 256,
+        height: 256,
+        correctLevel: QRCode.CorrectLevel.H
       });
-      
-      // Start the QR scanner
-      qrScanner.start();
     });
+    
+    // Start scanning for a QR code
+    qrScanner.start();
   </script>
 </body>
 </html>
