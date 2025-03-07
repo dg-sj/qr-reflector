@@ -2,107 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>QR Code Scanner & Regenerator</title>
-  <!-- Import qr-scanner and QRCode.js using defer -->
+  <title>QR Code Reflector</title>
+  <!-- Import qr-scanner and QRCode.js with defer -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       text-align: center;
       margin: 0;
       padding: 20px;
     }
-    #video {
+    video {
       width: 90%;
       max-width: 400px;
       margin: 20px auto;
       border: 1px solid #ccc;
     }
-    #output {
+    #reflected {
       margin-top: 20px;
-    }
-    #qrcode canvas {
-      margin: 20px auto;
-    }
-    #shareButton {
-      padding: 10px 20px;
-      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <h1>QR Code Scanner & Regenerator</h1>
-  <!-- Video element to display the camera stream -->
+  <h1>QR Code Reflector</h1>
+  <!-- Video element for the camera stream -->
   <video id="video" autoplay playsinline></video>
   
-  <!-- Output section for the regenerated QR code and share button -->
-  <div id="output" style="display:none;">
-    <h2>Regenerated QR Code</h2>
+  <!-- Container to display the regenerated QR code -->
+  <div id="reflected" style="display:none;">
+    <h2>Reflected QR Code</h2>
     <div id="qrcode"></div>
-    <button id="shareButton">Share QR Code</button>
   </div>
   
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      // Set the worker path for the qr-scanner library
+      // Set the worker path for qr-scanner
       QrScanner.WORKER_PATH = 'https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner-worker.min.js';
       
-      const video = document.getElementById("video");
-      const output = document.getElementById("output");
-      const qrCodeContainer = document.getElementById("qrcode");
-      let qrData = null;
+      const video = document.getElementById('video');
+      const reflectedDiv = document.getElementById('reflected');
+      const qrcodeDiv = document.getElementById('qrcode');
       
-      // Initialize the qr-scanner with the video element and a callback
+      // Initialize the QR scanner with the video element and callback
       const qrScanner = new QrScanner(video, result => {
-        qrData = result;
-        console.log("QR Code detected:", qrData);
-        qrScanner.stop();              // Stop scanning once a code is detected
-        video.style.display = "none";  // Hide the video stream
-        generateQRCode(qrData);        // Regenerate the QR code using the scanned data
-        output.style.display = "block"; // Show the output section
-      });
-      
-      // Start scanning for a QR code
-      qrScanner.start();
-      
-      // Function to generate a QR code using QRCode.js
-      function generateQRCode(data) {
-        qrCodeContainer.innerHTML = "";
-        new QRCode(qrCodeContainer, {
-          text: data,
+        console.log('QR code detected:', result);
+        // Stop scanning once a QR code is detected
+        qrScanner.stop();
+        // Hide the video element
+        video.style.display = 'none';
+        // Show the reflected QR code section
+        reflectedDiv.style.display = 'block';
+        // Clear any previous QR code and generate a new one using the scanned data
+        qrcodeDiv.innerHTML = '';
+        new QRCode(qrcodeDiv, {
+          text: result,
           width: 256,
           height: 256,
           correctLevel: QRCode.CorrectLevel.H
         });
-      }
-      
-      // Share the regenerated QR code image using the Web Share API
-      document.getElementById("shareButton").addEventListener("click", async () => {
-        const qrCanvas = qrCodeContainer.querySelector("canvas");
-        if (!qrCanvas) {
-          alert("QR code image not found!");
-          return;
-        }
-        qrCanvas.toBlob(async blob => {
-          const file = new File([blob], "qrcode.png", { type: blob.type });
-          const filesArray = [file];
-          if (navigator.canShare && navigator.canShare({ files: filesArray })) {
-            try {
-              await navigator.share({
-                files: filesArray,
-                title: "QR Code",
-                text: "Here is the regenerated QR code."
-              });
-            } catch (err) {
-              console.error("Error sharing:", err);
-              alert("Sharing failed.");
-            }
-          } else {
-            alert("File sharing is not supported on this device.");
-          }
-        });
       });
+      
+      // Start the QR scanner
+      qrScanner.start();
     });
   </script>
 </body>
